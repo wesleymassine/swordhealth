@@ -14,12 +14,34 @@ func NewUserUsecase(repo domain.UserRepository) *UserUsecase {
 	return &UserUsecase{UserRepo: repo}
 }
 
-func (uc *UserUsecase) CreateUser(ctx context.Context, user *domain.User) (*domain.User, error) {
-	return uc.UserRepo.Create(ctx, user)
+func (uc *UserUsecase) CreateUser(ctx context.Context, user *domain.User) (*domain.UserResponse, error) {
+	r, err := uc.UserRepo.Create(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.UserResponse{
+		ID:       r.ID,
+		Username: r.Username,
+		Email:    r.Email,
+		Role:     r.Role,
+	}, nil
 }
 
-func (uc *UserUsecase) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
-	return uc.UserRepo.GetUserByID(ctx, id)
+func (uc *UserUsecase) GetUserByID(ctx context.Context, id int64) (*domain.UserResponse, error) {
+	r, err := uc.UserRepo.GetUserByID(ctx, id)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &domain.UserResponse{
+		ID:       r.ID,
+		Username: r.Username,
+		Email:    r.Email,
+		Role:     r.Role,
+	}, nil
+
 }
 
 func (uc *UserUsecase) GetUserByEmail(ctx context.Context, email string) (*domain.User, error) {

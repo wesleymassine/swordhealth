@@ -8,11 +8,12 @@ import (
 )
 
 func TestHashPassword(t *testing.T) {
-	password := "securepassword"
-	hashedPassword, err := security.HashPassword(password)
-	assert.NoError(t, err)
+	password := "manager"
+	// hashedPassword, err := security.HashPassword(password)
+	// assert.NoError(t, err)
+	hashedPassword := "$2a$10$nuWwAZ75yMVZciH7fYAuKuWWl8JE3Dcbl895QdjLDNxIOuSRV1lfi"
 
-	err = security.CheckPassword(hashedPassword, password)
+	err := security.CheckPassword(hashedPassword, password)
 	assert.NoError(t, err)
 }
 

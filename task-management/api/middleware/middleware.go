@@ -77,9 +77,9 @@ func ParseJWT(tokenString string) (jwt.MapClaims, error) {
 		return jwtSecret, nil
 	})
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok {
-		return claims, nil
-	}
+    if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+        return claims, nil
+    }
 
 	return nil, err
 }

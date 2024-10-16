@@ -1,7 +1,6 @@
 package security
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -11,8 +10,6 @@ var jwtSecret = "ace353e1c2dd28f9fa8c40f3687f943f7a4c0576dedc702fc049f7f98f06467
 
 // GenerateJWT generates a new JWT token for a given user ID and role.
 func GenerateJWT(userID int64, role string) (string, error) {
-	fmt.Println("GenerateJWT", userID, role)
-
 	claims := jwt.MapClaims{
 		"user_id": userID,
 		"role":    role,
@@ -32,7 +29,7 @@ func ParseJWT(tokenString string) (jwt.MapClaims, error) {
 		return jwtSecret, nil
 	})
 
-	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 		return claims, nil
 	}
 

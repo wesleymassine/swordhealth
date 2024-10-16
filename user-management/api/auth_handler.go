@@ -1,8 +1,6 @@
 package api
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/wesleymassine/swordhealth/user-management/api/security"
 )
@@ -37,13 +35,6 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 
 	// Verify password
 	err = security.CheckPassword(user.Password, loginRequest.Password)
-
-	// TODO: PASSWORD
-	fmt.Println("TODO ERROR:", err)
-	fmt.Println("Stored hashed password:", user.Password)
-	fmt.Println("Provided login password:", loginRequest.Password)
-	hashPassword, err := security.HashPassword(loginRequest.Password)
-	fmt.Println("hash generate:", hashPassword)
 
 	if err != nil {
 		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{

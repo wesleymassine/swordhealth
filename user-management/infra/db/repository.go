@@ -4,8 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/go-sql-driver/mysql"
 	"github.com/wesleymassine/swordhealth/user-management/domain"
 )
 
@@ -22,10 +24,18 @@ func (repo *UserRepository) Create(ctx context.Context, user *domain.User) (*dom
 
 	// Execute the insert query
 	result, err := repo.DB.ExecContext(ctx, query, user.Username, user.Email, user.Password, user.Role)
+	
 	if err != nil {
+		// Check for duplicate key error (MySQL error code 1062)
+		if mysqlErr, ok := err.(*mysql.MySQLError); ok && mysqlErr.Number == 1062 {
+			// Check if the error is related to the 'email' field
+			if strings.Contains(mysqlErr.Message, "for key 'email'") {
+				return nil, fmt.Errorf("a user with the email %s already exists", user.Email)
+			}
+		}
+		// Return other errors as they are
 		return nil, fmt.Errorf("error inserting user: %v", err)
 	}
-
 	// Get the last inserted ID (user's ID)
 	userID, err := result.LastInsertId()
 	if err != nil {
