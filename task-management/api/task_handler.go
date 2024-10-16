@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	fiber "github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3/log"
 	"github.com/wesleymassine/swordhealth/task-management/domain"
 	"github.com/wesleymassine/swordhealth/task-management/usecase"
 )
@@ -17,81 +18,86 @@ func NewTaskHandler(u *usecase.TaskUseCase) *TaskHandler {
 }
 
 // CreateTask handles POST /tasks
-func (h *TaskHandler) CreateTask(c *fiber.Ctx) error {
+func (h *TaskHandler) CreateTaskHandler(ctx *fiber.Ctx) error {
 	var task domain.Task
-	if err := c.BodyParser(&task); err != nil {
+	if err := ctx.BodyParser(&task); err != nil {
 		return fiber.NewError(fiber.StatusBadRequest, err.Error())
 	}
 
 	// // Get user info from middleware context
-	userID := int64(c.Locals("user_id").(float64))
-	userRole := c.Locals("role").(string)
-
-	claims := domain.Claims{
-		UserID: userID,
-		Role:   userRole,
-	}
+	userID := int64(ctx.Locals("user_id").(float64))
+	userRole := ctx.Locals("role").(string)
 
 	// Optionally, you can validate user role or perform different actions based on role
-	if claims.Role != "super_admin" && claims.Role != "manager" {
-		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Insufficient permissions"})
+	if userRole != "super_admin" && userRole != "manager" {
+		return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Insufficient permissions"})
 	}
 
 	// if err := RoleMiddleware(claims.Role); err != nil {
-	// 	return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Insufficient permissions"})
+	// 	return ctx.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Insufficient permissions"})
 	// }
 
-	task.AssignedTo = claims.UserID // Assign the task to the user
-	if err := h.usecase.CreateTask(task); err != nil {
+	task.AssignedTo = userID // Assign the task to the user
+
+	taskResponse, err := h.usecase.CreateTask(ctx.Context(), task)
+	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
-		"message": "Task created successfully",
-	})
+	log.Info("Task created successfully")
+
+	return ctx.Status(fiber.StatusCreated).JSON(taskResponse)
 }
 
 // ListTasks handles GET /tasks
-func (h *TaskHandler) ListTasks(c *fiber.Ctx) error {
+func (h *TaskHandler) ListTasksHandler(ctx *fiber.Ctx) error {
 	// Get user info from middleware context
-	userID := int64(c.Locals("user_id").(float64))
-	userRole := c.Locals("role").(string)
+	userID := int64(ctx.Locals("user_id").(float64))
+	userRole := ctx.Locals("role").(string)
 
-	claims := domain.Claims{
-		UserID: userID,
-		Role:   userRole,
-	}
-
-	tasks, err := h.usecase.ListTasks(claims.Role, claims.UserID)
+	tasks, err := h.usecase.ListTasks(ctx.Context(), userRole, userID)
 
 	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	return c.Status(fiber.StatusOK).JSON(tasks)
+	return ctx.Status(fiber.StatusOK).JSON(tasks)
 }
 
-func (h *TaskHandler) UpdateTaskStatus(c *fiber.Ctx) error {
-	taskID := c.Params("id")
-	status := c.Params("status")
+// UpdateTaskStatusHandler handles PATCH requests to update the task status
+func (c *TaskHandler) UpdateTaskStatusHandler(ctx *fiber.Ctx) error {
+	// Parse task ID from the URL path
+	taskIDParam := ctx.Params("id")
 
-	// // Get user info from middleware context
-	userID := int64(c.Locals("user_id").(float64))
-	userRole := c.Locals("role").(string)
-
-	claims := domain.Claims{
-		UserID: userID,
-		Role:   userRole,
+	taskID, err := strconv.ParseInt(taskIDParam, 10, 64)
+	if err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid task ID"})
 	}
 
-	IdTask, _ := strconv.ParseInt(taskID, 10, 64)
+	// Get the user ID and role from the middleware (assuming user is authenticated)
+	userID := int64(ctx.Locals("user_id").(float64))
+	userRole := ctx.Locals("role").(string)
 
-	// Call service to update task status and notify manager
-	err := h.usecase.UpdateTaskStatus(IdTask, status, claims.UserID, claims.Role)
+	// TODO: Parse request body for new status
+	type UpdateTaskRequest struct {
+		Status string `json:"status"`
+	}
+
+	var req UpdateTaskRequest
+	if err := ctx.BodyParser(&req); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	// Call the service to update the task status
+	err = c.usecase.UpdateTaskStatus(ctx.Context(), taskID, userID, userRole, req.Status)
 
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "Failed to update task"})
+		if err.Error() == "unauthorized" {
+			return ctx.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "Task status updated successfully"})
+	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"message": "task updated successfully"})
 }

@@ -1,7 +1,7 @@
 package usecase
 
 import (
-	"fmt"
+	"context"
 	"time"
 
 	"github.com/gofiber/fiber/v2/log"
@@ -19,59 +19,63 @@ func NewTaskUseCase(repo domain.TaskRepository) *TaskUseCase {
 	}
 }
 
-func (u *TaskUseCase) CreateTask(task domain.Task) error {
-	// Check if the user (performed_by) exists
-	// userExists, err := u.repo.Exists(task.PerformedBy)
-	// if err != nil || !userExists {
-	// 	return fmt.Errorf("User with ID %d does not exist", task.PerformedBy)
-	// }
+func (u *TaskUseCase) CreateTask(ctx context.Context, task domain.Task) (*domain.Task, error) {
+	err := u.repo.UserExists(ctx, task.AssignedTo)
 
-	task.ID = 19
+	if err != nil {
+		return nil, err
+	}
 
-	task.PerformedAt = time.Now().Local()
-
-	err := u.repo.Save(task)
+	task.CreatedAt = time.Now().Local()
+	task.ID, err = u.repo.Save(ctx, task)
 
 	if err != nil {
 		log.Errorf("Failed to save task %v", err)
-		return err
+		return nil, err
 	}
+
+	// // Fetch task from the repository
+	// taskCreated, err := u.repo.GetTaskByID(ctx, task.ID)
+
+	// if err != nil {
+	// 	log.Errorf("Failed to fetch task %v", err)
+	// 	return nil, err
+	// }
 
 	// Publish the message to the RabbitMQ exchange using the task.status.create routing key
 	if err = notification.PublishToTopicExchange("task.status.create", task); err != nil {
 		log.Errorf("Failed to publish task creation to RabbitMQ %v", err)
+		return nil, err
+	}
+
+	return &task, nil
+}
+
+func (u *TaskUseCase) UpdateTaskStatus(ctx context.Context, taskID int64, userID int64, userRole string, status string) error {
+	err := u.repo.UserExists(ctx, userID)
+
+	if err != nil {
 		return err
 	}
 
-	return nil
-}
+	performedAt := time.Now()
 
-func (u *TaskUseCase) UpdateTaskStatus(taskID int64, status string, userID int64, userRole string) error {
-	// userExists, err := u.repo.Exists(task.PerformedBy)
-	// if err != nil || !userExists {
-	// 	return fmt.Errorf("User with ID %d does not exist", task.PerformedBy)
-	// }
+	// Call the repository method to update the task
+	err = u.repo.UpdateTaskStatus(ctx, taskID, userID, performedAt, status)
+
+	if err != nil {
+		return err
+	}
 
 	// Fetch task from the repository
-	task, err := u.repo.GetTaskByID(taskID)
+	task, err := u.repo.GetTaskByID(ctx, taskID)
 
 	if err != nil {
 		log.Errorf("Failed to fetch task %v", err)
 		return err
 	}
 
-	fmt.Println("taskID", taskID)
-
-	// Update task status
-	task.Status = status
-	err = u.repo.UpdateStatus(taskID, status)
-
-	if err != nil {
-		log.Errorf("Failed to update task %v", err)
-		return err
-	}
-
-	// Notify manager if the user is not a manager or admin
+	// Notify manager if the user is not a technical or admin
 	if userRole == "manager" {
 		err = notification.PublishToTopicExchange("task.status.update", task)
 		if err != nil {
@@ -83,15 +87,16 @@ func (u *TaskUseCase) UpdateTaskStatus(taskID int64, status string, userID int64
 	return nil
 }
 
-func (u *TaskUseCase) ListTasks(userRole string, userID int64) ([]domain.Task, error) {
-	// userExists, err := u.repo.Exists(task.PerformedBy)
-	// if err != nil || !userExists {
-	// 	return fmt.Errorf("User with ID %d does not exist", task.PerformedBy)
-	// }
+func (u *TaskUseCase) ListTasks(ctx context.Context, userRole string, userID int64) ([]domain.Task, error) {
+	err := u.repo.UserExists(ctx, userID)
 
-	if userRole == "manager" {
-		return u.repo.List() // Return all tasks
+	if err != nil {
+		return nil, err
 	}
 
-	return u.repo.ListForUser(userID) // Return only tasks assigned to the user
+	if userRole == "manager" {
+		return u.repo.List(ctx) // Return all tasks
+	}
+
+	return u.repo.ListForUser(ctx, userID) // Return only tasks assigned to the user
 }

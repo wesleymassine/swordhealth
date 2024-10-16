@@ -1,11 +1,10 @@
-package usecase
+package usecase_test
 
 // import (
-//     "testing"
-//     "github.com/stretchr/testify/assert"
-//     "github.com/swordhealth-root/internal/task-management/domain"
-//     "github.com/swordhealth-root/internal/task-management/usecase"
-//     "github.com/swordhealth-root/mocks"
+// 	"testing"
+
+// 	"github.com/stretchr/testify/assert"
+// 	"github.com/wesleymassine/swordhealth/task-management/domain"
 // )
 
 // func TestCreateTask(t *testing.T) {

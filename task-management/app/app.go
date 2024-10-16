@@ -24,7 +24,7 @@ func Run() {
 		fx.Invoke(
 			func(app *fiber.App, handler *api.HTTPHandler) {
 				handler.SetupRoutes(app)
-				app.Listen(":8082")
+				app.Listen(":8082") // TODO PORTS
 			},
 		),
 	).Run()

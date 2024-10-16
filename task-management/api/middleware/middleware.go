@@ -1,15 +1,13 @@
-package api
+package middleware
 
 import (
-	"fmt"
-
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 )
 
 const bearerPrefix = "Bearer "
 
-var jwtSecret = "ace353e1c2dd28f9fa8c40f3687f943f7a4c0576dedc702fc049f7f98f06467a" // Change to a strong key in production
+var jwtSecret = "ace353e1c2dd28f9fa8c40f3687f943f7a4c0576dedc702fc049f7f98f06467a" // Change to a strong key in production TODO
 
 // Middleware to check if the user is authenticated
 func AuthRequired(c *fiber.Ctx) error {
@@ -61,7 +59,6 @@ func AuthRequired(c *fiber.Ctx) error {
 func RoleMiddleware(role string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		userRole := c.Locals("role").(string)
-		fmt.Println("R==========================oleMiddleware", userRole)
 		if userRole != role {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{
 				"error": "Insufficient permissions",
@@ -79,8 +76,6 @@ func ParseJWT(tokenString string) (jwt.MapClaims, error) {
 		}
 		return jwtSecret, nil
 	})
-
-	fmt.Println("token.Valid", token.Valid)
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
 		return claims, nil

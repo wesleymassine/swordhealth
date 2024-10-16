@@ -13,7 +13,7 @@ var rabbitConn *amqp.Connection
 // SetupRabbitMQConnection establishes a connection to RabbitMQ
 func SetupRabbitMQConnection() (*amqp.Connection, error) {
 	if rabbitConn == nil || rabbitConn.IsClosed() { // Check if connection is nil or closed
-		conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+		conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/") // TODO VARS
 		if err != nil {
 			log.Printf("Failed to connect to RabbitMQ: %s", err) // Log instead of exiting
 			return nil, err
@@ -74,6 +74,6 @@ func PublishToTopicExchange(routingKey string, taskMsg domain.Task) error {
 	}
 
 	log.Printf("Message published to exchange %s with routing key: %s:", "task_notifications", routingKey)
-	
+
 	return nil
 }
