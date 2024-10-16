@@ -8,7 +8,7 @@ import (
 	"github.com/wesleymassine/swordhealth/user-management/domain"
 )
 
-func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
+func (h *UserHandler) CreateUserHandler(c *fiber.Ctx) error {
 	var user domain.User
 
 	if err := c.BodyParser(&user); err != nil {
@@ -22,21 +22,24 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 	}
 
 	user.Password = hashPassword
+	userCreated, err := h.userUsecase.CreateUser(c.Context(), &user)
 
-	if err := h.userUsecase.CreateUser(c.Context(), &user); err != nil {
+	if err != nil {
 		return fiber.NewError(fiber.StatusInternalServerError, err.Error())
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(user)
+	return c.Status(fiber.StatusCreated).JSON(userCreated)
 }
 
-func (h *UserHandler) GetUser(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
+func (h *UserHandler) GetUserHandler(c *fiber.Ctx) error {
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
 	}
 
-	user, err := h.userUsecase.GetUser(c.Context(), id)
+	user, err := h.userUsecase.GetUserByID(c.Context(), id)
+
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 	}
@@ -44,13 +47,15 @@ func (h *UserHandler) GetUser(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
+func (h *UserHandler) UpdateUserHandler(c *fiber.Ctx) error {
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
+
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
 	}
 
-	_, err = h.userUsecase.GetUser(c.Context(), id)
+	_, err = h.userUsecase.GetUserByID(c.Context(), id)
+
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 	}
@@ -69,14 +74,15 @@ func (h *UserHandler) UpdateUser(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-func (h *UserHandler) DeleteUser(c *fiber.Ctx) error {
-	id, err := strconv.Atoi(c.Params("id"))
+func (h *UserHandler) DeleteUserHandler(c *fiber.Ctx) error {
+	id, err := strconv.ParseInt(c.Params("id"), 10, 64)
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid user ID"})
 	}
 
-	_, err = h.userUsecase.GetUser(c.Context(), id)
+	_, err = h.userUsecase.GetUserByID(c.Context(), id)
+
 	if err != nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
 	}

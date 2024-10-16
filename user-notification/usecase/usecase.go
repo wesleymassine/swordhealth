@@ -60,8 +60,17 @@ func (n *NotificationService) handleTasks(ctx context.Context) {
 }
 
 func (n *NotificationService) Notify(ctx context.Context, task domain.Task) {
+	var msg string
 
-	msg := fmt.Sprintf("The tech %v performed the task %s on date %v\n", task.PerformedBy, task.Title, task.PerformedAt)
+	switch task.Event {
+	case "task.status.create":
+		// taskCreatedAt, _ := time.Parse("2006-02-01 15:04:05", task.CreatedAt.String())
+		msg = fmt.Sprintf("Task %s created on date %v success\n", task.Title, task.CreatedAt)
+
+	case "task.status.update":
+		// taskPerformedAt, _ := time.Parse("2006-02-01 15:04:05", task.PerformedAt.String())
+		msg = fmt.Sprintf("The tech %v performed the task %s on date %v\n", task.PerformedBy, task.Title, task.PerformedAt)
+	}
 
 	notification := domain.Notification{
 		TaskID:             task.ID,
@@ -72,17 +81,13 @@ func (n *NotificationService) Notify(ctx context.Context, task domain.Task) {
 		ByPush:             false,
 	}
 
-	fmt.Println("notification", notification)
-
 	// Fetch the manager email from the repository
-	manager, err := n.notificationRepo.GetManagerByTaskID(2) //TODO userID
+	manager, err := n.notificationRepo.GetManagerByTaskID(task.AssignedTo)
 
 	if err != nil {
 		log.Printf("Error fetching manager email: %v", err)
 		return
 	}
-
-	fmt.Println("manager", manager)
 
 	if err := n.notificationRepo.UpsertNotification(ctx, notification); err != nil {
 		log.Printf("Error notification status pending: %v", err)
@@ -113,18 +118,18 @@ func (n *NotificationService) Notify(ctx context.Context, task domain.Task) {
 
 func (n *NotificationService) sendEmailNotification(userEmail, msg string) error {
 	// TODO: Email sending logic here
-	log.Printf("sending email to %s", userEmail)
-	log.Print(msg)
-	log.Printf("status %s", domain.StatusSent)
+	log.Printf("sending email to %s...", userEmail)
+	log.Printf("notification: %s", msg)
+	log.Printf("status %s...", domain.StatusSent)
 
 	return nil
 }
 
 func (n *NotificationService) notifyPush(userName, msg string) error {
 	// TODO: Email sending logic here
-	log.Printf("sending push to manager %s", userName)
-	log.Print(msg)
-	log.Printf("status %s", domain.StatusSent)
+	log.Printf("sending push to manager %s...", userName)
+	log.Printf("notification: %s", msg)
+	log.Printf("status %s...", domain.StatusSent)
 
 	return nil
 }

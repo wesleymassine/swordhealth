@@ -39,7 +39,7 @@ func TestCreateUser(t *testing.T) {
 	repo := NewUserRepository(db)
 
 	user := &domain.User{Username: "testuser", Email: "test@example.com", Password: "password", Role: "user"}
-	err = repo.Create(context.Background(), user)
+	_, err = repo.Create(context.Background(), user)
 	assert.NoError(t, err)
 }
 
@@ -51,7 +51,7 @@ func TestGetUser(t *testing.T) {
 	// Insert a test user
 	db.Exec("INSERT INTO users (name, email, password_hash, role) VALUES ('testuser', 'test@example.com', 'password', 'user')")
 
-	user, err := repo.GetUser(context.Background(), 1)
+	user, err := repo.GetUserByID(context.Background(), 1)
 	assert.NoError(t, err)
 	assert.Equal(t, "testuser", user.Username)
 	assert.Equal(t, "test@example.com", user.Email)
@@ -70,7 +70,7 @@ func TestUpdateUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Check if the user was updated
-	updatedUser, err := repo.GetUser(context.Background(), 1)
+	updatedUser, err := repo.GetUserByID(context.Background(), 1)
 	assert.NoError(t, err)
 	assert.Equal(t, "updateduser", updatedUser.Username)
 	assert.Equal(t, "updated@example.com", updatedUser.Email)
@@ -88,7 +88,7 @@ func TestDeleteUser(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Try to fetch the deleted user
-	user, err := repo.GetUser(context.Background(), 1)
+	user, err := repo.GetUserByID(context.Background(), 1)
 	assert.Error(t, err)
 	assert.Nil(t, user)
 }

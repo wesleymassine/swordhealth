@@ -146,6 +146,7 @@ func (c *RabbitMQConsumer) StartConsuming(ctx context.Context, queueName string,
 				continue
 			}
 
+			task.Event = d.RoutingKey
 			taskChannel <- task // Send the task to the channel
 		}
 	}

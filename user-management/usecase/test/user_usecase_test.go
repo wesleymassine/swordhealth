@@ -15,12 +15,12 @@ type MockUserRepository struct {
 	mock.Mock
 }
 
-func (m *MockUserRepository) Create(ctx context.Context, user *domain.User) error {
+func (m *MockUserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	args := m.Called(ctx, user)
-	return args.Error(0)
+	return args.Get(0).(*domain.User), args.Error(1)
 }
 
-func (m *MockUserRepository) GetUser(ctx context.Context, id int) (*domain.User, error) {
+func (m *MockUserRepository) GetUserByID(ctx context.Context, id int64) (*domain.User, error) {
 	args := m.Called(ctx, id)
 	return args.Get(0).(*domain.User), args.Error(1)
 }
@@ -35,7 +35,7 @@ func (m *MockUserRepository) GetUserByEmail(ctx context.Context, email string) (
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
-func (m *MockUserRepository) DeleteUser(ctx context.Context, id int) error {
+func (m *MockUserRepository) DeleteUser(ctx context.Context, id int64) error {
 	args := m.Called(ctx, id)
 	return args.Error(0)
 }
@@ -56,7 +56,7 @@ func (suite *UserUsecaseTestSuite) TestCreateUser() {
 	user := &domain.User{Username: "testuser", Email: "test@example.com"}
 	suite.MockRepo.On("Create", mock.Anything, user).Return(nil)
 
-	err := suite.Usecase.CreateUser(context.Background(), user)
+	_, err := suite.Usecase.CreateUser(context.Background(), user)
 	suite.NoError(err)
 }
 
@@ -64,7 +64,7 @@ func (suite *UserUsecaseTestSuite) TestGetUser() {
 	user := &domain.User{ID: 1, Username: "testuser"}
 	suite.MockRepo.On("GetUser", mock.Anything, 1).Return(user, nil)
 
-	result, err := suite.Usecase.GetUser(context.Background(), 1)
+	result, err := suite.Usecase.GetUserByID(context.Background(), 1)
 	suite.NoError(err)
 	suite.Equal(user, result)
 }

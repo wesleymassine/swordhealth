@@ -1,8 +1,6 @@
 package middleware
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/wesleymassine/swordhealth/user-management/api/security"
 )
@@ -18,8 +16,6 @@ func JWTMiddleware() fiber.Handler {
 				"error": "Authorization header is missing",
 			})
 		}
-
-		fmt.Println("Authorization", authHeader)
 
 		var token string
 		if len(authHeader) > len(bearerPrefix) && authHeader[:len(bearerPrefix)] == bearerPrefix {
@@ -43,19 +39,13 @@ func JWTMiddleware() fiber.Handler {
 			})
 		}
 
-		fmt.Println("token", token)
-
 		claims, err := security.ParseJWT(token)
-
-		fmt.Println("ParseJWT ERROR", claims)
 
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"error": "Invalid or expired token",
 			})
 		}
-
-		println("SET STORE========:", claims["user_id"], claims["role"])
 
 		// Store the user ID and role in the context
 		c.Locals("user_id", claims["user_id"])

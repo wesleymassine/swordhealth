@@ -3,7 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
-	"strings"
+	"fmt"
 	"time"
 
 	"github.com/wesleymassine/swordhealth/user-management/domain"
@@ -17,25 +17,52 @@ func NewUserRepository(db *sql.DB) domain.UserRepository {
 	return &UserRepository{DB: db}
 }
 
-func (repo *UserRepository) Create(ctx context.Context, user *domain.User) error {
+func (repo *UserRepository) Create(ctx context.Context, user *domain.User) (*domain.User, error) {
 	query := "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, ?)"
-	_, err := repo.DB.ExecContext(ctx, query, user.Username, user.Email, user.Password, user.Role)
-	return err
+
+	// Execute the insert query
+	result, err := repo.DB.ExecContext(ctx, query, user.Username, user.Email, user.Password, user.Role)
+	if err != nil {
+		return nil, fmt.Errorf("error inserting user: %v", err)
+	}
+
+	// Get the last inserted ID (user's ID)
+	userID, err := result.LastInsertId()
+	if err != nil {
+		return nil, fmt.Errorf("error getting last insert ID: %v", err)
+	}
+
+	// Optionally, query the database to get the full user details (if needed)
+	createdUser, err := repo.GetUserByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching created user: %v", err)
+	}
+
+	return createdUser, nil
 }
 
-func (repo *UserRepository) GetUser(ctx context.Context, id int) (*domain.User, error) {
+func (repo *UserRepository) GetUserByID(ctx context.Context, userID int64) (*domain.User, error) {
+	query := "SELECT id, name, email, role, created_at FROM users WHERE id = ? AND deleted_at IS NULL"
 	var user domain.User
+	var createdAt []byte // Store created_at as a byte slice ([]byte)
 
-	query := "SELECT id, name, email, role FROM users WHERE id = ? and deleted_at IS NULL"
-
-	err := repo.DB.QueryRowContext(ctx, query, id).Scan(&user.ID, &user.Username, &user.Email, &user.Role)
+	err := repo.DB.QueryRowContext(ctx, query, userID).Scan(&user.ID, &user.Username, &user.Email, &user.Role, &createdAt)
+	
 	if err != nil {
-
-		if strings.Contains(err.Error(), domain.ErrNoRowsResult.Error()) {
-			return nil, domain.ErrNotFound
+		if err == sql.ErrNoRows {
+			return nil, fmt.Errorf("user with ID %d not found", userID)
 		}
-
 		return nil, err
+	}
+
+	if len(createdAt) > 0 {
+		parsedTime, err := time.Parse("2006-01-02 15:04:05", string(createdAt))
+		if err != nil {
+			return nil, fmt.Errorf("error parsing created_at: %v", err)
+		}
+		user.CreatedAt = parsedTime
+	} else {
+		user.CreatedAt = time.Time{} // Set to zero value if created_at is NULL
 	}
 
 	return &user, nil
@@ -57,7 +84,8 @@ func (repo *UserRepository) GetUserByEmail(ctx context.Context, email string) (*
 
 func (repo *UserRepository) UpdateUser(ctx context.Context, user *domain.User) error {
 	// Fetch current user data
-	currentUser, err := repo.GetUser(ctx, user.ID)
+	currentUser, err := repo.GetUserByID(ctx, user.ID)
+
 	if err != nil {
 		return err
 	}
@@ -77,12 +105,14 @@ func (repo *UserRepository) UpdateUser(ctx context.Context, user *domain.User) e
 
 	query := "UPDATE users SET name = ?, email = ?, role = ?, updated_at = ? WHERE id = ?"
 	_, err = repo.DB.ExecContext(ctx, query, user.Username, user.Email, user.Role, time.Now().Local(), user.ID)
+
 	return err
 }
 
-func (repo *UserRepository) DeleteUser(ctx context.Context, id int) error {
+func (repo *UserRepository) DeleteUser(ctx context.Context, id int64) error {
 	// Delete logically, not physically
 	query := "UPDATE users SET deleted_at = ? WHERE id = ?"
 	_, err := repo.DB.ExecContext(ctx, query, time.Now().Local(), id)
+
 	return err
 }

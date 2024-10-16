@@ -22,7 +22,7 @@ func Run() {
 		fx.Invoke(
 			func(handler *api.UserHandler) {
 				handler.RegisterRoutes(app)
-				app.Listen(":8081")
+				app.Listen(":8081") // TODO PORT VAR
 			},
 		),
 	).Run()

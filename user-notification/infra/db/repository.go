@@ -19,19 +19,19 @@ func NewMySQLRepository(db *sql.DB) domain.NotificationRepository {
 }
 
 func (r *MySQLRepository) UpsertNotification(ctx context.Context, msg domain.Notification) error {
-	  // Check if the task exists in the tasks table
-	  var exists bool
-	  err := r.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM tasks WHERE id = ?)", msg.TaskID).Scan(&exists)
-	  if err != nil {
-		  log.Printf("Error checking if task exists: %v", err)
-		  return err
-	  }
-  
-	  if !exists {
-		  return fmt.Errorf("Task with ID %d does not exist", msg.TaskID)
-	  }
-  
-	  // Proceed to insert or update the notification
+	// Check if the task exists in the tasks table
+	var exists bool
+	err := r.db.QueryRowContext(ctx, "SELECT EXISTS(SELECT 1 FROM tasks WHERE id = ?)", msg.TaskID).Scan(&exists)
+	if err != nil {
+		log.Printf("Error checking if task exists: %v", err)
+		return err
+	}
+
+	if !exists {
+		return fmt.Errorf("Task with ID %d does not exist", msg.TaskID)
+	}
+
+	// Proceed to insert or update the notification
 	query := `INSERT INTO notifications 
         (task_id, notification_body, notification_status, sent_at) 
         VALUES (?, ?, ?, ?) 
@@ -85,7 +85,7 @@ func (r *MySQLRepository) ListLatestNotifications(limit int) (domain.Notificatio
 
 	for rows.Next() {
 		var msg domain.Notification
-		var sentAt []byte  // Use []byte to scan the sent_at field as a byte slice
+		var sentAt []byte // Use []byte to scan the sent_at field as a byte slice
 
 		err := rows.Scan(&msg.TaskID, &sentAt, &msg.NotificationStatus, &msg.NotificationBody)
 		if err != nil {
@@ -94,15 +94,15 @@ func (r *MySQLRepository) ListLatestNotifications(limit int) (domain.Notificatio
 
 		// Manually parse the sentAt field into a time.Time
 		if len(sentAt) > 0 {
-			parsedTime, err := time.Parse("2006-01-02 15:04:05", string(sentAt))  // Assuming DATETIME format
+			parsedTime, err := time.Parse("2006-01-02 15:04:05", string(sentAt)) // Assuming DATETIME format
 			if err != nil {
 				log.Printf("Error parsing sent_at field: %v", err)
-				msg.SentAt = time.Time{}  // Handle invalid date format by setting to zero value
+				msg.SentAt = time.Time{} // Handle invalid date format by setting to zero value
 			} else {
 				msg.SentAt = parsedTime
 			}
 		} else {
-			msg.SentAt = time.Time{}  // If sent_at is NULL, use the zero value
+			msg.SentAt = time.Time{} // If sent_at is NULL, use the zero value
 		}
 
 		list.Notification = append(list.Notification, msg)

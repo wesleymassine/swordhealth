@@ -1,9 +1,8 @@
 package api
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
+	"github.com/wesleymassine/swordhealth/user-notification/api/middleware"
 	"github.com/wesleymassine/swordhealth/user-notification/usecase"
 )
 
@@ -17,15 +16,14 @@ func NewHTTPHandler(notification *usecase.NotificationService) *HTTPHandler {
 
 func (h *HTTPHandler) SetupRoutes(app *fiber.App) {
 	api := app.Group("/api/v1")
-	// TODO: middleware
-	api.Get("/notifications", h.listLatestNotifications)
+
+	api.Get("/notifications", middleware.AuthRequired, h.listLatestNotifications)
 }
 
 func (h *HTTPHandler) listLatestNotifications(c *fiber.Ctx) error {
 	limit := 10 // TODO: query params LIMIT OFFSET
-	notifications, err := h.notification.ListLatestNotifications(limit)
 
-	fmt.Println("DEBUG", err)
+	notifications, err := h.notification.ListLatestNotifications(limit)
 
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).SendString("Failed to fetch notifications")

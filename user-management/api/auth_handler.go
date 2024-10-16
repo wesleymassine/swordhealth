@@ -38,11 +38,10 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 	// Verify password
 	err = security.CheckPassword(user.Password, loginRequest.Password)
 
-	// TODO: ERROR PASSOWRD
+	// TODO: PASSWORD
 	fmt.Println("TODO ERROR:", err)
 	fmt.Println("Stored hashed password:", user.Password)
 	fmt.Println("Provided login password:", loginRequest.Password)
-
 	hashPassword, err := security.HashPassword(loginRequest.Password)
 	fmt.Println("hash generate:", hashPassword)
 

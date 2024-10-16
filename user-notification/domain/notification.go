@@ -19,6 +19,7 @@ type Task struct {
 	PerformedBy int64     `json:"performed_by"`
 	PerformedAt time.Time `json:"performed_at"`
 	CreatedAt   time.Time `json:"created_at"`
+	Event       string    `json:"-"`
 }
 
 type Notifications struct {
