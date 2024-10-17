@@ -10,7 +10,7 @@ import (
 	"sort"
 )
 
-const migrationsDir = "./sql"
+const migrationsDir = "./sql/"
 
 // NewMigrations applies all migrations
 func NewMigrations() {

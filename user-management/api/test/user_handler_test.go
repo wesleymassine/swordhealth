@@ -60,48 +60,48 @@ func TestCreateUser(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 }
 
-// func TestGetUser(t *testing.T) {
-//     app := fiber.New()
-//     mockUsecase := new(MockUserUsecase)
-//     handler := api.NewUserHandler(mockUsecase)
-//     handler.RegisterRoutes(app)
+func TestGetUser(t *testing.T) {
+    app := fiber.New()
+    mockUsecase := new(MockUserUsecase)
+    handler := api.NewUserHandler(&mockUsecase.userUsecase)
+    handler.RegisterRoutes(app)
 
-//     user := domain.User{ID: 1, Username: "testuser"}
-//     mockUsecase.On("GetUser", mock.Anything, 1).Return(&user, nil)
+    user := domain.User{ID: 1, Username: "testuser"}
+    mockUsecase.On("GetUser", mock.Anything, 1).Return(&user, nil)
 
-//     req := httptest.NewRequest(http.MethodGet, "/users/1", nil)
-//     resp, _ := app.Test(req)
+    req := httptest.NewRequest(http.MethodGet, "/users/1", nil)
+    resp, _ := app.Test(req)
 
-//     assert.Equal(t, http.StatusOK, resp.StatusCode)
-// }
+    assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
 
-// func TestUpdateUser(t *testing.T) {
-//     app := fiber.New()
-//     mockUsecase := new(MockUserUsecase)
-//     handler := api.NewUserHandler(mockUsecase)
-//     handler.RegisterRoutes(app)
+func TestUpdateUser(t *testing.T) {
+    app := fiber.New()
+    mockUsecase := new(MockUserUsecase)
+    handler := api.NewUserHandler(&mockUsecase.userUsecase)
+    handler.RegisterRoutes(app)
 
-//     user := domain.User{ID: 1, Username: "updateduser"}
-//     mockUsecase.On("UpdateUser", mock.Anything, &user).Return(nil)
+    user := domain.User{ID: 1, Username: "updateduser"}
+    mockUsecase.On("UpdateUser", mock.Anything, &user).Return(nil)
 
-//     jsonUser, _ := json.Marshal(user)
-//     req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(jsonUser))
-//     req.Header.Set("Content-Type", "application/json")
-//     resp, _ := app.Test(req)
+    jsonUser, _ := json.Marshal(user)
+    req := httptest.NewRequest(http.MethodPut, "/users/1", bytes.NewReader(jsonUser))
+    req.Header.Set("Content-Type", "application/json")
+    resp, _ := app.Test(req)
 
-//     assert.Equal(t, http.StatusOK, resp.StatusCode)
-// }
+    assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
 
-// func TestDeleteUser(t *testing.T) {
-//     app := fiber.New()
-//     mockUsecase := new(MockUserUsecase)
-//     handler := api.NewUserHandler(mockUsecase)
-//     handler.RegisterRoutes(app)
+func TestDeleteUser(t *testing.T) {
+    app := fiber.New()
+    mockUsecase := new(MockUserUsecase)
+    handler := api.NewUserHandler(&mockUsecase.userUsecase)
+    handler.RegisterRoutes(app)
 
-//     mockUsecase.On("DeleteUser", mock.Anything, 1).Return(nil)
+    mockUsecase.On("DeleteUser", mock.Anything, 1).Return(nil)
 
-//     req := httptest.NewRequest(http.MethodDelete, "/users/1", nil)
-//     resp, _ := app.Test(req)
+    req := httptest.NewRequest(http.MethodDelete, "/users/1", nil)
+    resp, _ := app.Test(req)
 
-//     assert.Equal(t, http.StatusNoContent, resp.StatusCode)
-// }
+    assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+}

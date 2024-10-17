@@ -32,4 +32,4 @@ prune:
 .PHONY: migrate
 migrate:
 	@echo "Running migrations..."
-	
+	cd ./pkg/migrations && go run cmd/main.go
