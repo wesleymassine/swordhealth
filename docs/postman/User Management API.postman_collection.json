@@ -1,0 +1,857 @@
+{
+	"info": {
+		"_postman_id": "cc593eba-5dca-4e20-a791-5d711cb319f0",
+		"name": "User Management API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "5553578",
+		"_collection_link": "https://gold-zodiac-589488.postman.co/workspace/6d734aa8-9d3f-4930-82fd-c251a0873c37/collection/5553578-cc593eba-5dca-4e20-a791-5d711cb319f0?action=share&source=collection_link&creator=5553578"
+	},
+	"item": [
+		{
+			"name": "Health Check",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/healthcheck",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"healthcheck"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();",
+							"pm.environment.set(\"token\", jsonData[\"token\"]);",
+							"",
+							"// Função para decodificar o token JWT",
+							"function parseJwt(token) {",
+							"    if (!token) {",
+							"        console.log(\"Token não encontrado ou inválido.\");",
+							"        return null;",
+							"    }",
+							"",
+							"    const base64Url = token.split('.')[1];",
+							"    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');",
+							"    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {",
+							"        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);",
+							"    }).join(''));",
+							"",
+							"    return JSON.parse(jsonPayload);",
+							"}",
+							"",
+							"// Obtém o token JWT armazenado em uma variável global",
+							"const token = pm.environment.get(\"token\");",
+							"",
+							"// Verifica se o token está disponível antes de continuar",
+							"if (!token) {",
+							"    console.log(\"Token JWT não foi encontrado na variável global.\");",
+							"    pm.variables.unset(\"assigned_to\");  // Remove a variável 'assigned_to' se não houver token",
+							"} else {",
+							"    // Decodifica o token para obter o payload",
+							"    const tokenPayload = parseJwt(token);",
+							"",
+							"    if (tokenPayload) {",
+							"         const userId = tokenPayload.user_id || tokenPayload.id;  // Ajuste ",
+							"        // Verifica se o papel (role) do usuário é \"technician\"",
+							"        if (tokenPayload.role && tokenPayload.role === \"technician\") {",
+							"            // Define a variável local \"assigned_to\" com o user_id do técnico",
+							"            pm.variables.set(\"performed_by\", userId);",
+							"            console.log(\"Usuário é technician. user_id atribuído a 'performed_by':\", userId);",
+							"        } else {",
+							"            // Remove a variável \"assigned_to\" se o papel não for technician",
+							"            pm.variables.unset(\"assigned_to\");",
+							"            console.log(\"Usuário logado é manager.\");",
+							"        }",
+							"    } else {",
+							"        console.log(\"Falha ao decodificar o token JWT.\");",
+							"    }",
+							"}",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"email\": \"manager@gmail.com\",\n    \"password\": \"manager\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/login",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"login"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Login 401 Unauthorized",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"test@example.com\",\n    \"password\": \"password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"login"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 14:53:14 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "37"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"error\": \"Invalid email or password\"\n}"
+				},
+				{
+					"name": "Login Manager",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"manager@gmail.com\",\n    \"password\": \"manager\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"login"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 18:06:47 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "156"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3MjkwMTU2MDcsInJvbGUiOiJtYW5hZ2VyIiwidXNlcl9pZCI6N30.DyDIU0n--B9uX46h-p3IcCJ27PvtLGt60lOYWEuSTiA\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Create User",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"Manager 2\",\n    \"email\": \"manager2@gmail.com\",\n    \"password\": \"manager2\",\n    \"role\": \"Manager\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/register",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"register"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Create User Admin",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"Super Admin\",\n    \"email\": \"admin@gmail.com\",\n    \"password\": \"secret\",\n    \"role\": \"super_admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"register"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 16:04:16 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "80"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"username\": \"Super Admin\",\n    \"email\": \"admin@gmail.com\",\n    \"role\": \"super_admin\"\n}"
+				},
+				{
+					"name": "Create Technician",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"Technician 1\",\n    \"email\": \"tech1@gmail.com\",\n    \"password\": \"tech1\",\n    \"role\": \"technician\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"register"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 16:11:28 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "80"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"username\": \"Technician 1\",\n    \"email\": \"tech1@gmail.com\",\n    \"role\": \"technician\"\n}"
+				},
+				{
+					"name": "Create Manager",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"Manager\",\n    \"email\": \"manager@gmail.com\",\n    \"password\": \"manager\",\n    \"role\": \"Manager\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"register"
+							]
+						}
+					},
+					"status": "Created",
+					"code": 201,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 16:11:28 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "80"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"username\": \"Manager\",\n    \"email\": \"manager@gmail.com\",\n    \"role\": \"Manager\"\n}"
+				},
+				{
+					"name": "Create 401 Unauthorized",
+					"originalRequest": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"disabled": true
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"Manager\",\n    \"email\": \"manager@gmail.com\",\n    \"password\": \"manager\",\n    \"role\": \"Manager\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"register"
+							]
+						}
+					},
+					"status": "Unauthorized",
+					"code": 401,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 21:11:34 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "43"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"error\": \"Authorization header is missing\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Get User",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/profile/2",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"profile",
+						"2"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Get User",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/profile/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"profile",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 19:09:01 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "26"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"error\": \"User not found\"\n}"
+				},
+				{
+					"name": "Get User Success",
+					"originalRequest": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/profile/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"profile",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 19:09:40 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "74"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": 7,\n    \"username\": \"Manager\",\n    \"email\": \"manager@gmail.com\",\n    \"role\": \"manager\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Update User",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"username\": \"updateduser\",\n    \"email\": \"updateduser@example.com\",\n    \"role\": \"manager\"\n}"
+				},
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/update/2",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"update",
+						"2"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Update 400 Bad Request",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"updateduser\",\n    \"email\": \"updateduser@example.com\",\n    \"role\": \"manager\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/update/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"update",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"status": "Bad Request",
+					"code": 400,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 19:07:09 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "25"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"error\": \"Invalid input\"\n}"
+				},
+				{
+					"name": "Update User Success",
+					"originalRequest": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"updateduser\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/update/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"update",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 21:03:26 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "84"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"id\": 7,\n    \"username\": \"updateduser\",\n    \"email\": \"updateduser@example.com\",\n    \"role\": \"manager\"\n}"
+				}
+			]
+		},
+		{
+			"name": "Delete User",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer {{token}}"
+					}
+				],
+				"url": {
+					"raw": "{{base_url}}/api/v1/users/delete/2",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"api",
+						"v1",
+						"users",
+						"delete",
+						"2"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Delete 404 Not Found",
+					"originalRequest": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/v1/users/delete/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"users",
+								"delete",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": ""
+								}
+							]
+						}
+					},
+					"status": "Not Found",
+					"code": 404,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Mon, 14 Oct 2024 21:09:21 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Content-Length",
+							"value": "26"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"error\": \"User not found\"\n}"
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		}
+	]
+}
