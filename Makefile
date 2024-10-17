@@ -4,6 +4,8 @@ TASK_SERVICE_PORT=8082
 NOTIFICATION_SERVICE_PORT=8083
 DOCKER_COMPOSE_FILE=docker-compose.yaml
 
+DB_URL="mysql://root:root@tcp(localhost:3306)/task"
+
 .PHONY: up
 up:
 	@echo "Starting all services with Docker Compose..."
@@ -33,3 +35,15 @@ prune:
 migrate:
 	@echo "Running migrations..."
 	cd ./pkg/migrations && go run cmd/main.go
+
+
+# Run migrations
+.PHONY: migrate-up
+migrate-up:
+	@echo "Running migrations up..."
+	cd ./pkg/migrations && go run cmd/main.go migrate-up
+
+.PHONY: migrate-down
+migrate-down:
+	@echo "Reverting migrations..."
+		cd ./pkg/migrations && go run cmd/main.go migrate-down
