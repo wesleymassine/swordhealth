@@ -11,17 +11,20 @@ import (
 )
 
 type NotificationService struct {
-	rabbitMQConsumer domain.NotificationEvent
-	notificationRepo domain.NotificationRepository
-	taskChannel      chan domain.Task
-	wg               sync.WaitGroup // WaitGroup to control goroutines
+	rabbitMQConsumer  domain.NotificationEvent
+	notificationRepo  domain.NotificationRepository
+	userServiceClient domain.UserServiceClient
+	taskChannel       chan domain.Task
+	wg                sync.WaitGroup // WaitGroup to control goroutines
 }
 
-func NewNotificationService(consumer domain.NotificationEvent, userRepository domain.NotificationRepository) *NotificationService {
+func NewNotificationService(consumer domain.NotificationEvent, userRepository domain.NotificationRepository,
+	userClient domain.UserServiceClient) *NotificationService {
 	return &NotificationService{
-		rabbitMQConsumer: consumer,
-		notificationRepo: userRepository,
-		taskChannel:      make(chan domain.Task),
+		rabbitMQConsumer:  consumer,
+		notificationRepo:  userRepository,
+		userServiceClient: userClient,
+		taskChannel:       make(chan domain.Task),
 	}
 }
 
@@ -81,9 +84,8 @@ func (n *NotificationService) Notify(ctx context.Context, task domain.Task) {
 		ByPush:             false,
 	}
 
-	// Fetch the manager email from the repository
-	manager, err := n.notificationRepo.GetManagerByTaskID(task.AssignedTo)
-
+	manager, err := n.userServiceClient.GetUserByTaskID(ctx, task.ID)
+	fmt.Println("manager", manager)
 	if err != nil {
 		log.Printf("Error fetching manager email: %v", err)
 		return

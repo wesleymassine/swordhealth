@@ -9,7 +9,6 @@ CREATE TABLE IF NOT EXISTS tasks (
     performed_by BIGINT,
     performed_at DATETIME DEFAULT NULL,
     CONSTRAINT fk_assigned_to FOREIGN KEY (assigned_to) REFERENCES users(id) ON DELETE CASCADE
-    -- CONSTRAINT fk_performed_by FOREIGN KEY (performed_by) REFERENCES users(id) ON DELETE SET NULL
 );
 
 CREATE INDEX idx_tasks_status ON tasks(status);

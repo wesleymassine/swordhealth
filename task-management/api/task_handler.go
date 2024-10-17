@@ -101,3 +101,19 @@ func (c *TaskHandler) UpdateTaskStatusHandler(ctx *fiber.Ctx) error {
 
 	return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"message": "task updated successfully"})
 }
+
+func (h *TaskHandler) GetUserAssignedTaskHandler(c *fiber.Ctx) error {
+	id, err := strconv.ParseInt(c.Params("task_id"), 10, 64)
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid task ID"})
+	}
+
+	user, err := h.usecase.GetUserByAssignedTask(c.Context(), id)
+
+	if err != nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "User not found"})
+	}
+
+	return c.JSON(user)
+}

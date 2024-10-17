@@ -73,7 +73,7 @@ func (suite *UserUsecaseTestSuite) TestUpdateUser() {
 	user := &domain.User{ID: 1, Username: "updateduser"}
 	suite.MockRepo.On("UpdateUser", mock.Anything, user).Return(nil)
 
-	err := suite.Usecase.UpdateUser(context.Background(), user)
+	_, err := suite.Usecase.UpdateUser(context.Background(), user)
 	suite.NoError(err)
 }
 

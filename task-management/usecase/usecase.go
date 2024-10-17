@@ -100,3 +100,7 @@ func (u *TaskUseCase) ListTasks(ctx context.Context, userRole string, userID int
 
 	return u.repo.ListForUser(ctx, userID) // Return only tasks assigned to the user
 }
+
+func (u *TaskUseCase) GetUserByAssignedTask(ctx context.Context, taskID int64) (*domain.User, error) {
+	return u.repo.GetUserByAssignedTask(ctx, taskID)
+}

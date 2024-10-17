@@ -17,6 +17,8 @@ func NewUserHandler(uc *usecase.UserUsecase) *UserHandler {
 func (h *UserHandler) RegisterRoutes(app *fiber.App) {
 	api := app.Group("/api/v1")
 
+	api.Get("/users/healthcheck", h.HealthCheck)
+
 	// Public routes
 	api.Post("/users/login", h.Login)
 

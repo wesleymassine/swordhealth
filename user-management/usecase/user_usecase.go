@@ -36,10 +36,11 @@ func (uc *UserUsecase) GetUserByID(ctx context.Context, id int64) (*domain.UserR
 	}
 
 	return &domain.UserResponse{
-		ID:       r.ID,
-		Username: r.Username,
-		Email:    r.Email,
-		Role:     r.Role,
+		ID:        r.ID,
+		Username:  r.Username,
+		Email:     r.Email,
+		Role:      r.Role,
+		CreatedAt: r.CreatedAt,
 	}, nil
 
 }
@@ -48,8 +49,12 @@ func (uc *UserUsecase) GetUserByEmail(ctx context.Context, email string) (*domai
 	return uc.UserRepo.GetUserByEmail(ctx, email)
 }
 
-func (uc *UserUsecase) UpdateUser(ctx context.Context, user *domain.User) error {
-	return uc.UserRepo.UpdateUser(ctx, user)
+func (uc *UserUsecase) UpdateUser(ctx context.Context, user *domain.User) (*domain.UserResponse, error) {
+	if err := uc.UserRepo.UpdateUser(ctx, user); err != nil {
+		return nil, err
+	}
+
+	return uc.GetUserByID(ctx, user.ID)
 }
 
 func (uc *UserUsecase) DeleteUser(ctx context.Context, id int64) error {

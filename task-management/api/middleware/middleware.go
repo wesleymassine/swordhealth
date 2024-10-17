@@ -77,9 +77,24 @@ func ParseJWT(tokenString string) (jwt.MapClaims, error) {
 		return jwtSecret, nil
 	})
 
-    if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
-        return claims, nil
-    }
+	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		return claims, nil
+	}
 
 	return nil, err
+}
+
+func ApiKeyMiddleware(c *fiber.Ctx) error {
+	// If API key is not in the Authorization header, check the query parameter
+	apiKey := c.Get("x-api-key")
+
+	// Check if the API key is valid
+	if apiKey != "swordhealth" {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error": "Invalid or missing API key",
+		})
+	}
+
+	// If API key is valid, proceed to the nex handler
+	return c.Next()
 }

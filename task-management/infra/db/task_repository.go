@@ -29,7 +29,7 @@ func (r *MySQLTaskRepository) Save(ctx context.Context, task domain.Task) (int64
 }
 
 func (r *MySQLTaskRepository) List(ctx context.Context) ([]domain.Task, error) {
-	query := "SELECT id, title, description, status, assigned_to, performed_by, performed_at FROM tasks"
+	query := "SELECT id, title, description, status, assigned_to, performed_by, performed_at, created_at FROM tasks"
 
 	rows, err := r.db.Query(query)
 	if err != nil {
@@ -40,10 +40,10 @@ func (r *MySQLTaskRepository) List(ctx context.Context) ([]domain.Task, error) {
 	tasks := []domain.Task{}
 	for rows.Next() {
 		var task domain.Task
-		var performedBy sql.NullInt64 // Use sql.NullInt64 to handle NULL values in performed_by
-		var performedAt sql.NullTime  // Use sql.NullTime to handle NULL values in performed_at
+		var performedBy sql.NullInt64     // Use sql.NullInt64 to handle NULL values in performed_by
+		var createdAt, performedAt []byte // Use sql.NullTime to handle NULL values in performed_at
 
-		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.AssignedTo, &performedBy, &performedAt)
+		err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.AssignedTo, &performedBy, &performedAt, &createdAt)
 		if err != nil {
 			return nil, err
 		}
@@ -55,11 +55,24 @@ func (r *MySQLTaskRepository) List(ctx context.Context) ([]domain.Task, error) {
 			task.PerformedBy = 0 // or use another default value or pointer if preferred
 		}
 
-		// If performed_at is valid, assign the time
-		if performedAt.Valid {
-			task.PerformedAt = performedAt.Time
+		if len(performedAt) > 0 {
+			parsedTime, err := time.Parse("2006-01-02 15:04:05", string(performedAt))
+			if err != nil {
+				return nil, fmt.Errorf("error parsing performed_at: %v", err)
+			}
+			task.PerformedAt = parsedTime
 		} else {
 			task.PerformedAt = time.Time{} // or handle as required (e.g., using a nil pointer)
+		}
+
+		if len(createdAt) > 0 {
+			parsedTime, err := time.Parse("2006-01-02 15:04:05", string(createdAt))
+			if err != nil {
+				return nil, fmt.Errorf("error parsing performed_at: %v", err)
+			}
+			task.CreatedAt = parsedTime
+		} else {
+			task.CreatedAt = time.Time{} // or handle as required (e.g., using a nil pointer)
 		}
 
 		tasks = append(tasks, task)
@@ -69,7 +82,7 @@ func (r *MySQLTaskRepository) List(ctx context.Context) ([]domain.Task, error) {
 }
 
 func (r *MySQLTaskRepository) ListForUser(ctx context.Context, userID int64) ([]domain.Task, error) {
-	query := `SELECT id, title, description, assigned_to, status, created_at FROM tasks WHERE assigned_to = ?`
+	query := `SELECT id, title, description, assigned_to, status, performed_at, created_at FROM tasks WHERE performed_by = ?`
 	rows, err := r.db.Query(query, userID)
 	if err != nil {
 		return nil, err
@@ -79,17 +92,31 @@ func (r *MySQLTaskRepository) ListForUser(ctx context.Context, userID int64) ([]
 	var tasks []domain.Task
 	for rows.Next() {
 		var task domain.Task
-		var createdAt sql.NullTime // Use sql.NullTime to handle NULL values or incorrect data types
+		var createdAt, performedAt []byte
 
-		if err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.AssignedTo, &task.Status, &createdAt); err != nil {
+		if err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.AssignedTo, &task.Status, &performedAt, &createdAt); err != nil {
 			return nil, err
 		}
 
-		// Check if the value is valid before assigning it
-		if createdAt.Valid {
-			task.CreatedAt = createdAt.Time
+		// Convert performedAt from []byte to time.Time
+		if len(performedAt) > 0 {
+			parsedTime, err := time.Parse("2006-01-02 15:04:05", string(performedAt)) // Adjust the format based on your MySQL `DATETIME` or `TIMESTAMP` format
+			if err != nil {
+				return nil, fmt.Errorf("error parsing performed_at: %v", err)
+			}
+			task.PerformedAt = parsedTime
 		} else {
-			task.CreatedAt = time.Time{} // Assign zero value if created_at is NULL
+			task.PerformedAt = time.Time{} // Zero value if NULL
+		}
+
+		if len(createdAt) > 0 {
+			parsedTime, err := time.Parse("2006-01-02 15:04:05", string(createdAt))
+			if err != nil {
+				return nil, fmt.Errorf("error parsing performed_at: %v", err)
+			}
+			task.CreatedAt = parsedTime
+		} else {
+			task.CreatedAt = time.Time{} // Zero value if NULL
 		}
 
 		tasks = append(tasks, task)
@@ -126,7 +153,7 @@ func (r *MySQLTaskRepository) GetTaskByID(ctx context.Context, taskID int64) (do
 	var task domain.Task
 	var performedBy sql.NullInt64 // Handle NULL values for performed_by
 	var performedAt []byte        // Store performed_at as []byte to handle byte slices
-	var createdAt []byte        // Store performed_at as []byte to handle byte slices
+	var createdAt []byte          // Store performed_at as []byte to handle byte slices
 
 	query := `
 		SELECT id, title, description, assigned_to, status, performed_by, performed_at, created_at
@@ -162,7 +189,7 @@ func (r *MySQLTaskRepository) GetTaskByID(ctx context.Context, taskID int64) (do
 
 	// Convert performedAt from []byte to time.Time
 	if len(performedAt) > 0 {
-		parsedTime, err := time.Parse("2006-01-02 15:04:05", string(performedAt))  // Adjust the format based on your MySQL `DATETIME` or `TIMESTAMP` format
+		parsedTime, err := time.Parse("2006-01-02 15:04:05", string(performedAt)) // Adjust the format based on your MySQL `DATETIME` or `TIMESTAMP` format
 		if err != nil {
 			return task, fmt.Errorf("error parsing performed_at: %v", err)
 		}
@@ -203,4 +230,21 @@ func (r *MySQLTaskRepository) UserExists(ctx context.Context, userID int64) erro
 
 	// If the user exists, return nil (no error)
 	return nil
+}
+
+func (r *MySQLTaskRepository) GetUserByAssignedTask(ctx context.Context, taskID int64) (*domain.User, error) {
+	query := `
+        SELECT u.id,u.name, u.email, u.role 
+        FROM users u
+        LEFT JOIN tasks t ON u.id = t.assigned_to
+        WHERE t.id = ?;
+    `
+	var user domain.User
+	err := r.db.QueryRow(query, taskID).Scan(&user.ID, &user.Username, &user.Email, &user.Role)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

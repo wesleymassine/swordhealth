@@ -13,6 +13,7 @@ import (
 	"github.com/wesleymassine/swordhealth/user-notification/config"
 	"github.com/wesleymassine/swordhealth/user-notification/infra/db"
 	"github.com/wesleymassine/swordhealth/user-notification/infra/mq"
+	userservice "github.com/wesleymassine/swordhealth/user-notification/infra/service-external/user-service"
 	"github.com/wesleymassine/swordhealth/user-notification/usecase"
 	"go.uber.org/fx"
 )
@@ -36,6 +37,8 @@ func Run() {
 			usecase.NewNotificationService,
 			api.NewHTTPHandler,
 		),
+		userservice.Module,
+
 		fx.Invoke(
 			func(service *usecase.NotificationService, app *fiber.App, handler *api.HTTPHandler) {
 				handler.SetupRoutes(app)

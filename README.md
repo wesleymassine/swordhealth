@@ -28,13 +28,14 @@ The **Notification-Service** is responsible for sending notifications to manager
 
 ### Routes
 
-| Method | Endpoint                | Description                 |
-|--------|-------------------------|-----------------------------|
+| Method | Endpoint                 | Description                 |
+|--------|--------------------------|-----------------------------|
 | POST   | `/users/register`        | Register a new user         |
 | POST   | `/users/login`           | Login a user                |
-| GET    | `/users/me`              | Get current user profile    |
-| PUT    | `/users/update`          | Update user profile         |
+| GET    | `/users/profile/:id`     | Get current user profile    |
+| PUT    | `/users/update/:id`      | Update user profile         |
 | DELETE | `/users/delete/:id`      | Delete a user by ID         |
+| GET    | `/healthcheck`           | Healt check                 |            
 
 ### Requests and Responses
 
@@ -44,16 +45,18 @@ The **Notification-Service** is responsible for sending notifications to manager
 **Request Body**:
 ```json
 {
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "securepassword",
-  "role": "technician"
+  "name": "Manager",
+  "email": "manager@gmail.com",
+  "password": "manager",
+  "role": "manager"
 }
 ```
 **Response**:
 ```json
 {
-  "message": "User registered successfully"
+    "username": "Manager",
+    "email": "manager@gmail.com",
+    "role": "Manager"
 }
 ```
 
@@ -63,20 +66,14 @@ The **Notification-Service** is responsible for sending notifications to manager
 **Request Body**:
 ```json
 {
-  "email": "john@example.com",
-  "password": "securepassword"
+    "email": "manager@gmail.com",
+    "password": "manager"
 }
 ```
 **Response**:
 ```json
 {
   "token": "JWT-TOKEN-HERE",
-  "user": {
-    "id": 1,
-    "name": "John Doe",
-    "email": "john@example.com",
-    "role": "technician"
-  }
 }
 ```
 
@@ -90,9 +87,9 @@ The **Notification-Service** is responsible for sending notifications to manager
 |--------|-------------------------|-----------------------------|
 | POST   | `/tasks`                | Create a new task           |
 | GET    | `/tasks`                | List all tasks              |
-| GET    | `/tasks/:id`            | Get task details by ID      |
-| PUT    | `/tasks/update/:id`     | Update a task by ID         |
-| DELETE | `/tasks/delete/:id`     | Delete a task by ID         |
+| GET    | `/tasks/:task_id`       | Update a task by ID         |
+| PUT    | `/tasks/:task_id/status`| PUT task task               |
+| GET    | `/healthcheck`          | Healt check                 |            
 
 ### Requests and Responses
 
@@ -111,12 +108,19 @@ The **Notification-Service** is responsible for sending notifications to manager
 **Response**:
 ```json
 {
-  "message": "Task created successfully"
+    "id": 1,
+    "title": "Fix the bug in the server-side code.",
+    "description": "The server is down and needs immediate attention",
+    "status": "pending",
+    "assigned_to": 2,
+    "performed_by": 0,
+    "performed_at": "0001-01-01T00:00:00Z",
+    "created_at": "2024-10-17T04:26:02.071374177+01:00"
 }
 ```
 
 #### 2. Update a Task
-- **PUT** `/tasks/update/:id`
+- **PUT** `/tasks/:task_id/status`
 
 **Request Body**:
 ```json
@@ -140,7 +144,7 @@ The **Notification-Service** is responsible for sending notifications to manager
 | Method | Endpoint                | Description                 |
 |--------|-------------------------|-----------------------------|
 | GET    | `/notifications`        | List all notifications      |
-| POST   | `/notifications/send`   | Send a notification manually|
+| GET    | `/healthcheck`          | Healt check                 |            
 
 ### Requests and Responses
 
@@ -160,22 +164,6 @@ The **Notification-Service** is responsible for sending notifications to manager
 ]
 ```
 
-#### 2. Send a Notification Manually
-- **POST** `/notifications/send`
-
-**Request Body**:
-```json
-{
-  "task_id": 1,
-  "message": "Technician X completed task Y."
-}
-```
-**Response**:
-```json
-{
-  "message": "Notification sent successfully"
-}
-```
 
 ---
 

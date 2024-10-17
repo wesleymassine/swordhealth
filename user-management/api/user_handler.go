@@ -66,11 +66,12 @@ func (h *UserHandler) UpdateUserHandler(c *fiber.Ctx) error {
 	}
 
 	user.ID = id
-	if err := h.userUsecase.UpdateUser(c.Context(), &user); err != nil {
+	resp, err := h.userUsecase.UpdateUser(c.Context(), &user)
+	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.JSON(user)
+	return c.JSON(resp)
 }
 
 func (h *UserHandler) DeleteUserHandler(c *fiber.Ctx) error {

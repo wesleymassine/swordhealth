@@ -11,6 +11,9 @@ type NotificationEvent interface {
 
 type NotificationRepository interface {
 	UpsertNotification(ctx context.Context, Notification Notification) error
-	GetManagerByTaskID(taskID int64) (*User, error)
 	ListLatestNotifications(limit int) (Notifications, error)
+}
+
+type UserServiceClient interface {
+	GetUserByTaskID(ctx context.Context, taskID int64) (*User, error)
 }
