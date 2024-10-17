@@ -3,98 +3,107 @@ package migrations
 import (
 	"database/sql"
 	"fmt"
-	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
-	"sort"
+
+	_ "github.com/go-sql-driver/mysql"
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/mysql"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
-const migrationsDir = "./sql/"
+// RunMigrationsUp applies all SQL migration files using golang-migrate
+func RunMigrationsUp() {
+	// Create the database schema if it doesn't exist
+	createDatabase("root:root@tcp(localhost:3306)/")
 
-// NewMigrations applies all migrations
-func NewMigrations() {
-	db, err := NewMySQLConnection() // Establish DB connection
-	if err != nil {
-		log.Fatalf("Could not connect to the database: %v", err)
+	// Set the DB URL
+	dbURL := "mysql://root:root@tcp(localhost:3306)/task"
+
+	if dbURL == "" {
+		log.Fatalf("DB_URL is not set")
 	}
 
-	log.Println("Applying migrations...")
-	err = ApplyMigrations(db)
+	// Path to the migrations folder
+	migrationsDir := "file://./sql" // file:// for local files
 
+	workingDir, err := os.Getwd()
 	if err != nil {
+		log.Fatalf("Could not get working directory: %v", err)
+	}
+	migrationsPath := filepath.Join(workingDir, migrationsDir)
+	fmt.Println("Migrations Path:", migrationsPath)
+
+	// Create new migration instance
+	m, err := migrate.New(migrationsDir, dbURL)
+	if err != nil {
+		log.Fatalf("Could not create new migrate instance: %v", err)
+	}
+
+	// Run migrations up
+	err = m.Up()
+	if err != nil && err != migrate.ErrNoChange {
 		log.Fatalf("Could not apply migrations: %v", err)
 	}
 
-	log.Println("Migrations applied successfully.")
+	if err == migrate.ErrNoChange {
+		log.Println("No new migrations to apply")
+	} else {
+		log.Println("Migrations applied successfully")
+	}
+
+	// Close the migrate instance to ensure proper cleanup
+	m.Close()
 }
 
-// ApplyMigrations applies all SQL migration files in sequence
-func ApplyMigrations(db *sql.DB) error {
-	// Get the current working directory and create the full path to migrations
-	workingDir, err := os.Getwd()
+// RunMigrationsDown rolls back the most recent migration using golang-migrate
+func RunMigrationsDown() {
+	// Set the DB URL
+	dbURL := "mysql://root:root@tcp(localhost:3306)/task"
+
+	if dbURL == "" {
+		log.Fatalf("DB_URL is not set")
+	}
+
+	// Path to the migrations folder
+	migrationsDir := "file://./sql" // file:// for local files
+
+	// Create new migration instance
+	m, err := migrate.New(migrationsDir, dbURL)
 	if err != nil {
-		return fmt.Errorf("could not get working directory: %v", err)
-	}
-	migrationsPath := filepath.Join(workingDir, migrationsDir)
-
-	fmt.Println("DEBUG", migrationsPath)
-
-	// Read all migration files
-	files, err := readMigrationFiles(migrationsPath)
-	if err != nil {
-		return fmt.Errorf("could not read migrations directory: %v", err)
+		log.Fatalf("Could not create new migrate instance: %v", err)
 	}
 
-	// Execute all .sql files
-	for _, file := range files {
-		if filepath.Ext(file.Name()) == ".sql" {
-			err = applyMigration(db, filepath.Join(migrationsPath, file.Name()))
-			if err != nil {
-				return err
-			}
-		}
+	// Roll back the most recent migration (down)
+	err = m.Steps(-1) // Rollback one step
+	if err != nil && err != migrate.ErrNoChange {
+		log.Fatalf("Could not roll back migrations: %v", err)
 	}
-	return nil
+
+	if err == migrate.ErrNoChange {
+		log.Println("No migrations to roll back")
+	} else {
+		log.Println("Migrations rolled back successfully")
+	}
+
+	// Close the migrate instance to ensure proper cleanup
+	m.Close()
 }
 
-// readMigrationFiles reads all the migration files in the given directory
-func readMigrationFiles(dir string) ([]fs.FileInfo, error) {
-	f, err := os.Open(dir)
+// createDatabase checks if the 'task' database exists, and creates it if it doesn't
+func createDatabase(dsn string) {
+	// Connect to MySQL server (without specifying a database)
+	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, err
+		log.Fatalf("Failed to connect to MySQL server: %v", err)
 	}
-	defer f.Close()
+	defer db.Close()
 
-	list, err := f.Readdir(-1)
+	// Check if 'task' database exists, and create it if it doesn't
+	_, err = db.Exec("CREATE DATABASE IF NOT EXISTS task")
 	if err != nil {
-		return nil, err
+		log.Fatalf("Failed to create database: %v", err)
 	}
-
-	// Sort files by name (i.e., run them in order)
-	sort.Slice(list, func(i, j int) bool {
-		return list[i].Name() < list[j].Name()
-	})
-	return list, nil
-}
-
-// applyMigration executes a migration file
-func applyMigration(db *sql.DB, filePath string) error {
-	query, err := os.ReadFile(filePath)
-	if err != nil {
-		return fmt.Errorf("could not read migration file %s: %v", filePath, err)
-	}
-
-	_, err = db.Exec(string(query))
-	if err != nil {
-		return fmt.Errorf("could not apply migration %s: %v", filePath, err)
-	}
-	log.Printf("Applied migration: %s", filePath)
-	return nil
-}
-
-// NewMySQLConnection creates a new MySQL connection
-func NewMySQLConnection() (*sql.DB, error) {
-	dsn := os.Getenv("DB_DSN")
-	return sql.Open("mysql", dsn)
+	log.Println("Database 'task' exists or has been created.")
 }

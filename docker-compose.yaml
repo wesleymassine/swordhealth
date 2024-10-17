@@ -22,3 +22,4 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=guest
       - RABBITMQ_DEFAULT_PASS=guest
+      - DB_URL=mysql://root:root@tcp(mysql:3306)/task
