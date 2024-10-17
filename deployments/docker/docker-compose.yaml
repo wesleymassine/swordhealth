@@ -1,0 +1,56 @@
+version: '3'
+services:
+  user-service:
+    build:
+      context: .
+      dockerfile: Dockerfile-user-service
+    ports:
+      - "8081:8080"
+    networks:
+      - backend
+  task-service:
+    build:
+      context: .
+      dockerfile: Dockerfile-task-service
+    ports:
+      - "8082:8080"
+    networks:
+      - backend
+    depends_on:
+      - db
+      - rabbitmq
+  notification-service:
+    build:
+      context: .
+      dockerfile: Dockerfile-notification-service
+    ports:
+      - "8083:8080"
+    networks:
+      - backend
+    environment:
+      - DB_HOST=db
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=task
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - JWT_SECRET=your_jwt_secret
+    volumes:
+      - .:/app
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: task
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672" # RabbitMQ management UI
+  volumes:
+    db_data:

@@ -1,0 +1,117 @@
+{
+    "info": {
+      "name": "Task Management API",
+      "description": "Postman collection for the Task Management API",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Create Task",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{jwt_token}}",
+              "type": "text"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n    \"title\": \"Fix Server Issue\",\n    \"description\": \"The server is down and needs immediate attention\",\n    \"assigned_to\": \"JohnDoe\",\n    \"status\": \"in_progress\"\n}"
+          },
+          "url": {
+            "raw": "http://localhost:3000/api/v1/tasks",
+            "protocol": "http",
+            "host": [
+              "localhost"
+            ],
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "tasks"
+            ]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "List Tasks",
+        "request": {
+          "method": "GET",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{jwt_token}}",
+              "type": "text"
+            }
+          ],
+          "url": {
+            "raw": "http://localhost:3000/api/v1/tasks",
+            "protocol": "http",
+            "host": [
+              "localhost"
+            ],
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "tasks"
+            ]
+          }
+        },
+        "response": []
+      },
+      {
+        "name": "Update Task Status",
+        "request": {
+          "method": "PATCH",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{jwt_token}}",
+              "type": "text"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n    \"status\": \"completed\"\n}"
+          },
+          "url": {
+            "raw": "http://localhost:3000/api/v1/tasks/:id/status",
+            "protocol": "http",
+            "host": [
+              "localhost"
+            ],
+            "port": "3000",
+            "path": [
+              "api",
+              "v1",
+              "tasks",
+              ":id",
+              "status"
+            ]
+          }
+        },
+        "response": []
+      }
+    ],
+    "auth": {
+      "type": "bearer",
+      "bearer": [
+        {
+          "key": "token",
+          "value": "{{jwt_token}}",
+          "type": "string"
+        }
+      ]
+    },
+    "variable": [
+      {
+        "key": "jwt_token",
+        "value": ""
+      }
+    ]
+  }
+  

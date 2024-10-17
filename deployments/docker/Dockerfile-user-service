@@ -1,0 +1,11 @@
+FROM golang:1.22-alpine as builder
+WORKDIR /app
+COPY . .
+RUN go mod tidy
+RUN go build -o user-service ./user-management/cmd/user-service/main.go
+
+FROM alpine:latest
+WORKDIR /root/
+COPY --from=builder /app/user-service .
+EXPOSE 8080
+CMD ["./user-service"]
