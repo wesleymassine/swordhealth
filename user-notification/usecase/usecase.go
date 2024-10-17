@@ -67,12 +67,12 @@ func (n *NotificationService) Notify(ctx context.Context, task domain.Task) {
 
 	switch task.Event {
 	case "task.status.create":
-		// taskCreatedAt, _ := time.Parse("2006-02-01 15:04:05", task.CreatedAt.String())
-		msg = fmt.Sprintf("Task %s created on date %v success\n", task.Title, task.CreatedAt)
+		taskCreatedAt := task.CreatedAt.Format("January 02, 2006 15:04:05")
+		msg = fmt.Sprintf("Task %s created on date %v success\n", task.Title, taskCreatedAt)
 
 	case "task.status.update":
-		// taskPerformedAt, _ := time.Parse("2006-02-01 15:04:05", task.PerformedAt.String())
-		msg = fmt.Sprintf("The tech %v performed the task %s on date %v\n", task.PerformedBy, task.Title, task.PerformedAt)
+		taskPerformedAt := task.PerformedAt.Format("January 02, 2006 15:04:05")
+		msg = fmt.Sprintf("The tech %v performed the task %s on date %v\n", task.PerformedBy, task.Title, taskPerformedAt)
 	}
 
 	notification := domain.Notification{

@@ -49,24 +49,6 @@ func (r *MySQLRepository) UpsertNotification(ctx context.Context, msg domain.Not
 	return err
 }
 
-// func (r *MySQLRepository) GetManagerByTaskID(taskID int64) (*domain.User, error) {
-// 	query := `
-//         SELECT u.name, u.email, u.role 
-//         FROM users u
-//         LEFT JOIN tasks t ON u.id = t.assigned_to
-//         WHERE u.id = ? limit 1;
-//     `
-// 	var user domain.User
-// 	err := r.db.QueryRow(query, taskID).Scan(&user.Username, &user.Email, &user.Role)
-
-// 	if err != nil {
-// 		log.Printf("Error fetching manager email: %v", err)
-// 		return nil, err
-// 	}
-
-// 	return &user, nil
-// }
-
 func (r *MySQLRepository) ListLatestNotifications(limit int) (domain.Notifications, error) {
 	var list domain.Notifications
 
