@@ -219,4 +219,33 @@ Additionally, the services will communicate through RabbitMQ, which will be auto
 | `PORT`           | Service port (default: `8083`)   |
 
 ## What I'd do differently or additional points
+[In construction]
+## Quick way to upload applications locally with Makefile in root folder
 
+- make up
+- migrate-up
+
+- run-user-service
+- run-task-service
+- run-notification-service
+
+## Upload the Postman files with all the routes
+
+## User mocks to login and generate the authentication token
+
+```
+{
+    "email": "admin@gmail.com",
+    "password": "admin"
+}
+
+{
+    "email": "manager@gmail.com",
+    "password": "manager"
+}
+
+{
+    "email": "tech1@gmail.com",
+    "password": "tech"
+}
+```

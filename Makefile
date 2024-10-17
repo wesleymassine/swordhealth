@@ -47,3 +47,20 @@ migrate-up:
 migrate-down:
 	@echo "Reverting migrations..."
 		cd ./pkg/migrations && go run cmd/main.go migrate-down
+
+# Run services individually (for local testing without Docker Compose)
+
+.PHONY: run-user-service
+run-user-service:
+	@echo "Running User-Service on port $(USER_SERVICE_PORT)..."
+	cd ./user-management && cd ./cmd/user-service && go run main.go
+
+.PHONY: run-task-service
+run-task-service:
+	@echo "Running Task-Service on port $(TASK_SERVICE_PORT)..."
+	cd ./task-management && cd ./cmd/task-service && go run main.go
+
+.PHONY: run-notification-service
+run-notification-service:
+	@echo "Running Notification-Service on port $(NOTIFICATION_SERVICE_PORT)..."
+	cd ./user-notification && cd ./cmd/notification-service && go run main.go

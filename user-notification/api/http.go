@@ -18,7 +18,7 @@ func (h *HTTPHandler) SetupRoutes(app *fiber.App) {
 	api := app.Group("/api/v1")
 
 	api.Get("/notifications", middleware.AuthRequired, h.listLatestNotifications)
-	// api.Get("/notifications/healthcheck", h.HealthCheck)
+	api.Get("/notifications/healthcheck", h.HealthCheck)
 }
 
 func (h *HTTPHandler) listLatestNotifications(c *fiber.Ctx) error {

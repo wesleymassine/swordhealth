@@ -14,7 +14,7 @@ CREATE INDEX idx_users_role ON users(role);
 
 -- Insert sample users into the users table
 INSERT INTO users (name, email, password_hash, role) VALUES 
-('Super Admin', 'admin@gmail.com', '$2a$10$dwfMRoHw6T42MLGKtyKBW.SFTQ5PSy07wWi6mx2gIwS8gKNNhY/Oi', 'super_admin'), -- password: secret
-('Manager', 'manager@gmail.com', '7676aaafb027c825bd9abab78b234070e702752f625b752e55e55b48e607e358', 'manager'),  -- password: manager_pass
-('Technician 1', 'tech1@gmail.com', 'dcb694aa0322f143ed970e275c807bf123bd5db4f73140b94ccc757f42dc8043', 'technician'), -- password: tech1_pass
-('Technician 2', 'tech2@gmail.com', 'dcb694aa0322f143ed970e275c807bf123bd5db4f73140b94ccc757f42dc8043', 'technician'); -- password: tech2_pass
+('Super Admin', 'admin@gmail.com', '$2a$10$5UFBURxHbhczo9MB9KkNNeX2OPUcAzFkvQkRAc.rt/YMF8TCU4kAW', 'super_admin'), -- password: secret
+('Manager', 'manager@gmail.com', '$2a$10$EeYi/gXMODpLkkLJ5CHUzu7lFU3u6RJJuhtofaacgp/bcyrbryQi2', 'manager'),  -- password: manager
+('Technician 1', 'tech1@gmail.com', 'dcb694aa0322f143ed970e275c807bf123bd5db4f73140b94ccc757f42dc8043', 'technician'), -- password: tech
+('Technician 2', 'tech2@gmail.com', 'dcb694aa0322f143ed970e275c807bf123bd5db4f73140b94ccc757f42dc8043', 'technician'); -- password: tech

@@ -85,7 +85,7 @@ func (n *NotificationService) Notify(ctx context.Context, task domain.Task) {
 	}
 
 	manager, err := n.userServiceClient.GetUserByTaskID(ctx, task.ID)
-	fmt.Println("manager", manager)
+
 	if err != nil {
 		log.Printf("Error fetching manager email: %v", err)
 		return
