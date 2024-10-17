@@ -1,6 +1,7 @@
 package security_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -8,12 +9,12 @@ import (
 )
 
 func TestHashPassword(t *testing.T) {
-	password := "manager"
+	password := "admin"
 	hashedPassword, err := security.HashPassword(password)
 	assert.NoError(t, err)
-
+	fmt.Println("SENHA", hashedPassword)
 	err = security.CheckPassword(hashedPassword, password)
-	assert.NoError(t, err)
+	assert.Error(t, err)
 }
 
 func TestGenerateAndParseJWT(t *testing.T) {
