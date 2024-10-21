@@ -3,13 +3,14 @@ package config
 import (
 	"database/sql"
 	"log"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/streadway/amqp"
 )
 
 func NewMySQLConnection() (*sql.DB, error) {
-    db, err := sql.Open("mysql", "root:root@tcp(localhost:3306)/task")
+    db, err := sql.Open(os.Getenv("SQL_DRIVER"), os.Getenv("MYSQL_URI"))
     if err != nil {
         return nil, err
     }

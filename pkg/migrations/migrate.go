@@ -19,10 +19,10 @@ func RunMigrationsUp() {
 	createDatabase("root:root@tcp(localhost:3306)/")
 
 	// Set the DB URL
-	dbURL := "mysql://root:root@tcp(localhost:3306)/task"
+	dbURL := os.Getenv("SQL_DRIVER") + "://" + os.Getenv("MYSQL_URI")
 
 	if dbURL == "" {
-		log.Fatalf("DB_URL is not set")
+		log.Fatalf("MYSQL_URI is not set")
 	}
 
 	// Path to the migrations folder
@@ -60,10 +60,10 @@ func RunMigrationsUp() {
 // RunMigrationsDown rolls back the most recent migration using golang-migrate
 func RunMigrationsDown() {
 	// Set the DB URL
-	dbURL := "mysql://root:root@tcp(localhost:3306)/task"
+	dbURL := os.Getenv("SQL_DRIVER") + "://" + os.Getenv("MYSQL_URI")
 
 	if dbURL == "" {
-		log.Fatalf("DB_URL is not set")
+		log.Fatalf("MYSQL_URI is not set")
 	}
 
 	// Path to the migrations folder
@@ -94,7 +94,7 @@ func RunMigrationsDown() {
 // createDatabase checks if the 'task' database exists, and creates it if it doesn't
 func createDatabase(dsn string) {
 	// Connect to MySQL server (without specifying a database)
-	db, err := sql.Open("mysql", dsn)
+	db, err := sql.Open(os.Getenv("SQL_DRIVER"), dsn)
 	if err != nil {
 		log.Fatalf("Failed to connect to MySQL server: %v", err)
 	}

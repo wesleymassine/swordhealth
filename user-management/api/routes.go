@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/wesleymassine/swordhealth/user-management/api/middleware"
+	// "github.com/wesleymassine/swordhealth/user-management/api/middleware"
 	"github.com/wesleymassine/swordhealth/user-management/usecase"
 )
 
@@ -25,7 +25,7 @@ func (h *UserHandler) RegisterRoutes(app *fiber.App) {
 	auth := app.Group("/api/v1")
 
 	// Protected routes
-	auth.Use(middleware.JWTMiddleware())
+	// auth.Use(middleware.JWTMiddleware())
 
 	auth.Post("/users/register", h.CreateUserHandler)
 	auth.Get("/users/profile/:id", h.GetUserHandler)

@@ -167,5 +167,6 @@ func (c *RabbitMQConsumer) sendToDeadLetterQueue(d amqp.Delivery) {
 
 	if err != nil {
 		log.Printf("Failed to publish message to dead-letter queue: %v", err)
+		return
 	}
 }

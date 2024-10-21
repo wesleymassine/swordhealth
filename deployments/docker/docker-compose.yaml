@@ -52,5 +52,3 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672" # RabbitMQ management UI
-  volumes:
-    db_data:
