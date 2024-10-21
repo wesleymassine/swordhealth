@@ -1,13 +1,13 @@
 package middleware
 
 import (
+	"os"
+
 	fiber "github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 )
 
 const bearerPrefix = "Bearer "
-
-var jwtSecret = "ace353e1c2dd28f9fa8c40f3687f943f7a4c0576dedc702fc049f7f98f06467a" // Change to a strong key in production TODO
 
 // Middleware to check if the user is authenticated
 func AuthRequired(c *fiber.Ctx) error {
@@ -74,7 +74,7 @@ func ParseJWT(tokenString string) (jwt.MapClaims, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, jwt.ErrInvalidKey
 		}
-		return jwtSecret, nil
+		return os.Getenv("JWT_SECRET"), nil
 	})
 
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {

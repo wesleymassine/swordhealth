@@ -197,7 +197,7 @@ Additionally, the services will communicate through RabbitMQ, which will be auto
 
 | Variable         | Description                      |
 |------------------|----------------------------------|
-| `DB_DSN`         | Database connection string       |
+| `MYSQL_URI`         | Database connection string       |
 | `JWT_SECRET`     | Secret key for JWT authentication|
 | `PORT`           | Service port (default: `8081`)   |
 
@@ -205,7 +205,7 @@ Additionally, the services will communicate through RabbitMQ, which will be auto
 
 | Variable         | Description                      |
 |------------------|----------------------------------|
-| `DB_DSN`         | Database connection string       |
+| `MYSQL_URI`         | Database connection string       |
 | `RABBITMQ_URL`   | RabbitMQ connection URL          |
 | `JWT_SECRET`     | Secret key for JWT authentication|
 | `PORT`           | Service port (default: `8082`)   |
@@ -214,7 +214,7 @@ Additionally, the services will communicate through RabbitMQ, which will be auto
 
 | Variable         | Description                      |
 |------------------|----------------------------------|
-| `DB_DSN`         | Database connection string       |
+| `MYSQL_URI`         | Database connection string       |
 | `RABBITMQ_URL`   | RabbitMQ connection URL          |
 | `PORT`           | Service port (default: `8083`)   |
 
