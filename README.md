@@ -1,5 +1,5 @@
 # swordhealth
-Sword Health - Technical backend challenge 
+Sword Health - Technical backend 
 
 # swordhealth Architecture for User, Task, and Notification Services
 
