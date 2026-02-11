@@ -1,7 +1,7 @@
-# swordhealth
-Sword Health - Technical backend 
+# Golang Monorepo project with 3 microservices
+Go Engineer
 
-# swordhealth Architecture for User, Task, and Notification Services
+# Demonstration of clean architecture for user, task, and notification services
 
 This repository contains three services: **User-Service**, **Task-Service**, and **Notification-Service**. Each service is built with Go, utilizing clean architecture principles, and is ready for production use with Docker, Docker Compose, and RabbitMQ integration.
 
